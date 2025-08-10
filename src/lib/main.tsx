@@ -186,6 +186,7 @@ export type OpenSecretContextType = {
   verifyEmail: typeof api.verifyEmail;
   requestNewVerificationCode: typeof api.requestNewVerificationCode;
   requestNewVerificationEmail: typeof api.requestNewVerificationCode;
+  fetchUser: () => Promise<api.UserResponse | undefined>;
   refetchUser: () => Promise<void>;
   changePassword: typeof api.changePassword;
   refreshAccessToken: typeof api.refreshToken;
@@ -620,6 +621,7 @@ export const OpenSecretContext = createContext<OpenSecretContextType>({
   verifyEmail: api.verifyEmail,
   requestNewVerificationCode: api.requestNewVerificationCode,
   requestNewVerificationEmail: api.requestNewVerificationCode,
+  fetchUser: async () => undefined,
   refetchUser: async () => {},
   changePassword: api.changePassword,
   refreshAccessToken: api.refreshToken,
@@ -748,6 +750,7 @@ export function OpenSecretProvider({
         loading: false,
         user
       });
+      return user;
     } catch (error) {
       console.error("Failed to fetch user:", error);
       setAuth({
@@ -756,10 +759,6 @@ export function OpenSecretProvider({
       });
     }
   }
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
 
   async function signIn(email: string, password: string) {
     console.log("Signing in");
@@ -971,7 +970,8 @@ export function OpenSecretProvider({
     put: api.fetchPut,
     list: api.fetchList,
     del: api.fetchDelete,
-    refetchUser: fetchUser,
+    fetchUser,
+    refetchUser: () => fetchUser().then(() => {}),
     verifyEmail: api.verifyEmail,
     requestNewVerificationCode: api.requestNewVerificationCode,
     requestNewVerificationEmail: api.requestNewVerificationCode,
