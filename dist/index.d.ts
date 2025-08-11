@@ -2051,7 +2051,7 @@ export declare type SignMessageResponse = {
     message_hash: string;
 };
 
-export declare function signOut(refresh_token: string): Promise<void>;
+export declare function signOut(): Promise<void>;
 
 export declare function signUp(email: string, password: string, inviteCode: string, name?: string | null): Promise<LoginResponse>;
 

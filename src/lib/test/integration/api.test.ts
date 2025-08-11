@@ -59,8 +59,8 @@ test("Refresh token works", async () => {
 });
 
 test("Logout doesn't error", async () => {
-  const { refresh_token } = await tryEmailLogin();
-  await fetchLogout(refresh_token);
+  await tryEmailLogin();
+  await fetchLogout();
 });
 
 test("Guest signup and login flow", async () => {
@@ -152,8 +152,8 @@ test("Guest refresh token works", async () => {
 test("Guest logout doesn't error", async () => {
   // Sign up as guest
   const guestSignup = await fetchGuestSignUp(TEST_PASSWORD!, "");
-  const { refresh_token } = await fetchGuestLogin(guestSignup.id, TEST_PASSWORD!);
-  await fetchLogout(refresh_token);
+  await fetchGuestLogin(guestSignup.id, TEST_PASSWORD!);
+  await fetchLogout();
 });
 
 test("Third party token generation", async () => {
