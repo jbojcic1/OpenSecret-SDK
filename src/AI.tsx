@@ -24,7 +24,7 @@ export function AI() {
       return;
     }
 
-    const customFetch = os.aiCustomFetch;
+    const customFetch = fetch;
 
     if (!query.trim() || loading || !customFetch) return;
 

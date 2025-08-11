@@ -1008,26 +1008,6 @@ export declare type OpenSecretContextType = {
      */
     signMessage: typeof api.signMessage;
     /**
-     * Custom fetch function for AI requests that handles encryption
-     * and token refreshing.
-     *
-     * Meant to be used with the OpenAI JS library
-     *
-     * Example:
-     * ```tsx
-     * const openai = new OpenAI({
-     *   baseURL: `${os.apiUrl}/v1/`,
-     *   dangerouslyAllowBrowser: true,
-     *   apiKey: "the-api-key-doesnt-matter",
-     *   defaultHeaders: {
-     *     "Accept-Encoding": "identity"
-     *   },
-     *   fetch: os.aiCustomFetch
-     * });
-     * ```
-     */
-    aiCustomFetch: (url: RequestInfo, init?: RequestInit) => Promise<Response>;
-    /**
      * Returns the current OpenSecret enclave API URL being used
      * @returns The current API URL
      */

@@ -1,6 +1,5 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState } from "react";
 import * as api from "./api";
-import { createCustomFetch } from "./ai";
 import { getAttestation } from "./getAttestation";
 import type { Model } from "openai/resources/models.js";
 import { authenticate } from "./attestation";
@@ -328,27 +327,6 @@ export type OpenSecretContextType = {
   signMessage: typeof api.signMessage;
 
   /**
-   * Custom fetch function for AI requests that handles encryption
-   * and token refreshing.
-   *
-   * Meant to be used with the OpenAI JS library
-   *
-   * Example:
-   * ```tsx
-   * const openai = new OpenAI({
-   *   baseURL: `${os.apiUrl}/v1/`,
-   *   dangerouslyAllowBrowser: true,
-   *   apiKey: "the-api-key-doesnt-matter",
-   *   defaultHeaders: {
-   *     "Accept-Encoding": "identity"
-   *   },
-   *   fetch: os.aiCustomFetch
-   * });
-   * ```
-   */
-  aiCustomFetch: (url: RequestInfo, init?: RequestInit) => Promise<Response>;
-
-  /**
    * Returns the current OpenSecret enclave API URL being used
    * @returns The current API URL
    */
@@ -640,7 +618,6 @@ export const OpenSecretContext = createContext<OpenSecretContextType>({
   getPrivateKeyBytes: api.fetchPrivateKeyBytes,
   getPublicKey: api.fetchPublicKey,
   signMessage: api.signMessage,
-  aiCustomFetch: async () => new Response(),
   apiUrl: "",
   pcrConfig: {},
   getAttestation,
@@ -697,13 +674,8 @@ export function OpenSecretProvider({
   clientId: string;
   pcrConfig?: PcrConfig;
 }) {
-  const [auth, setAuth] = useState<OpenSecretAuthState>({
-    loading: true,
-    user: undefined
-  });
-  const [aiCustomFetch, setAiCustomFetch] = useState<OpenSecretContextType["aiCustomFetch"]>();
-
-  useEffect(() => {
+  if (!api.getApiUrl()) {
+    debugger;
     if (!apiUrl || apiUrl.trim() === "") {
       throw new Error(
         "OpenSecretProvider requires a non-empty apiUrl. Please provide a valid API endpoint URL."
@@ -715,23 +687,33 @@ export function OpenSecretProvider({
       );
     }
     api.setApiUrl(apiUrl);
-
+  
     // Configure the apiConfig service with the app URL
     // Using dynamic import to avoid circular dependencies
     import("./apiConfig").then(({ apiConfig }) => {
       const platformUrl = apiConfig.platformApiUrl || "";
       apiConfig.configure(apiUrl, platformUrl);
     });
-  }, [apiUrl, clientId]);
+  }
 
-  // Create aiCustomFetch when user is authenticated
-  useEffect(() => {
-    if (auth.user) {
-      setAiCustomFetch(() => createCustomFetch());
-    } else {
-      setAiCustomFetch(undefined);
+  const [auth, setAuth] = useState<OpenSecretAuthState>({
+    loading: true,
+    user: undefined
+  });
+
+  async function fetchUser2() {
+    const access_token = window.localStorage.getItem("access_token");
+    const refresh_token = window.localStorage.getItem("refresh_token");
+    if (!access_token || !refresh_token) {
+      return;
     }
-  }, [auth.user]);
+
+    try {
+      return await api.fetchUser();
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  }
 
   async function fetchUser() {
     const access_token = window.localStorage.getItem("access_token");
@@ -970,7 +952,7 @@ export function OpenSecretProvider({
     put: api.fetchPut,
     list: api.fetchList,
     del: api.fetchDelete,
-    fetchUser,
+    fetchUser: fetchUser2,
     refetchUser: () => fetchUser().then(() => {}),
     verifyEmail: api.verifyEmail,
     requestNewVerificationCode: api.requestNewVerificationCode,
@@ -998,7 +980,6 @@ export function OpenSecretProvider({
     getPrivateKeyBytes: api.fetchPrivateKeyBytes,
     getPublicKey: api.fetchPublicKey,
     signMessage: api.signMessage,
-    aiCustomFetch: aiCustomFetch || (async () => new Response()),
     apiUrl,
     pcrConfig,
     getAttestation,
