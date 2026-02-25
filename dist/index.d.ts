@@ -9,7 +9,6 @@ declare function acceptInvite(code: string): Promise<{
 
 declare namespace api {
     export {
-        setApiUrl,
         getApiUrl,
         signIn as fetchLogin,
         signInGuest as fetchGuestLogin,
@@ -83,18 +82,17 @@ export declare const apiConfig: ApiConfigService;
  * ApiConfig service that manages URL configuration for both contexts
  */
 declare class ApiConfigService {
-    private _appApiUrl;
     private _platformApiUrl;
     /**
-     * Configure the API URLs for both app and platform contexts
+     * Configure the platform API URL
      */
-    configure(appApiUrl: string, platformApiUrl: string): void;
+    configurePlatform(platformApiUrl: string): void;
     /**
      * Get the platform API URL
      */
     get platformApiUrl(): string;
     /**
-     * Get the app API URL
+     * Get the app API URL (derived from global config)
      */
     get appApiUrl(): string;
     /**
@@ -1985,8 +1983,6 @@ declare function requestPlatformPasswordReset(email: string, hashedSecret: strin
  * Reset configuration (mainly for testing)
  */
 export declare function resetConfig(): void;
-
-export declare function setApiUrl(url: string): void;
 
 declare function setPlatformApiUrl(url: string): void;
 
